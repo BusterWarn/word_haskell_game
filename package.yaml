@@ -40,6 +40,7 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - dynamic
     dependencies:
     - words
 
@@ -53,3 +54,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - words
+    - hspec
