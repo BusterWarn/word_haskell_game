@@ -3,4 +3,4 @@ module Main (main) where
 import Lib
 
 main :: IO ()
-main = outputGrid grid
+main = outputGrid word_grid
