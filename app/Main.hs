@@ -4,4 +4,6 @@ import Lib
 import Data
 
 main :: IO ()
-main = outputGrid grid
+main =
+  let gridOfCells = gridWithCoords grid
+  in outputGrid gridOfCells
