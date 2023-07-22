@@ -3,6 +3,7 @@ module Lib
     , formatGrid
     , findWord
     , findWordInLine
+    , findWordInCellLinePrefix
     , findWords
     , skew
     , diagonalize
@@ -10,12 +11,16 @@ module Lib
     , zipOverGrid
     , zipOverGridWith
     , gridWithCoords
+    , Cell(Cell, Indent)
+    , cellToChar
     ) where
 
 import Data.List (isInfixOf, transpose)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, listToMaybe)
 
-data Cell = Cell (Integer, Integer) Char deriving (Eq, Ord, Show)
+data Cell = Cell (Integer, Integer) Char 
+          | Indent 
+            deriving (Eq, Ord, Show)
 type Grid a = [[a]]
 
 zipOverGrid :: Grid a -> Grid b -> Grid (a, b)
@@ -47,8 +52,9 @@ formatGrid = unlines . mapOverGrid cellToChar
 
 cellToChar :: Cell -> Char
 cellToChar (Cell _ c) = c
+cellToChar Indent = '?'
 
-gridToLines :: Grid Char -> [String]
+gridToLines :: Grid Cell -> [[Cell]]
 gridToLines grid =
   let horizontal = grid
       vertical = transpose grid
@@ -57,25 +63,36 @@ gridToLines grid =
       lines = horizontal ++ vertical ++ diagonal_horizontal ++ diagonal_vertical
   in lines ++ (map reverse lines)
 
-findWord :: Grid Char -> String -> Maybe String
+findWord :: Grid Cell -> String -> Maybe [Cell]
 findWord grid word =
   let lines = gridToLines grid
-      found = or $ map (findWordInLine word) lines
-  in if found then Just word else Nothing
+      foundWords = map (findWordInLine word) lines
+  in listToMaybe (catMaybes foundWords)
 
-findWordInLine :: String -> String -> Bool
-findWordInLine = isInfixOf
+findWordInLine :: String -> [Cell] -> Maybe [Cell]
+findWordInLine _ [] = Nothing
+findWordInLine word line =
+  let found = findWordInCellLinePrefix [] word line
+  in case found of
+    Nothing -> findWordInLine word (tail line)
+    cells@(Just _) -> cells
 
-findWords :: Grid Char -> [String] -> [String]
+findWordInCellLinePrefix :: [Cell] -> String ->[Cell] -> Maybe [Cell]
+findWordInCellLinePrefix acc (char : chars) (cell : cells) | char == (cellToChar cell)
+  = findWordInCellLinePrefix (cell : acc) chars cells
+findWordInCellLinePrefix acc [] _ = Just $ reverse acc
+findWordInCellLinePrefix _ _ _ = Nothing
+
+findWords :: Grid Cell -> [String] -> [[Cell]]
 findWords grid words =
   let foundWords = map (findWord grid) words
   in catMaybes foundWords
 
-skew :: Grid Char -> Grid Char
+skew :: Grid Cell -> Grid Cell
 skew [] = []
 skew (l : ls) = do
   l : skew (map indent ls)
-    where indent line = '_' : line
+    where indent line = Indent : line
 
-diagonalize :: Grid Char -> Grid Char
+diagonalize :: Grid Cell -> Grid Cell
 diagonalize = transpose . skew
