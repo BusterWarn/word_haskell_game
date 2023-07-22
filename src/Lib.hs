@@ -13,10 +13,57 @@ module Lib
     , gridWithCoords
     , Cell(Cell, Indent)
     , cellToChar
+    , Game (gameGrid, gameWords)
+    , makeGame
+    , totalWords
+    , score
+    , playGame
+    , formatGame
     ) where
 
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
+import qualified Data.Map as M
+
+data Game = Game
+            {
+              gameGrid :: Grid Cell,
+              gameWords :: M.Map String (Maybe [Cell])
+            }
+            deriving Show
+
+makeGame :: Grid Char -> [String] -> Game
+makeGame grid words =
+  let gwc = gridWithCoords grid
+      tuplify word = (word, Nothing)
+      list = map tuplify words
+      dict = M.fromList list
+  in Game gwc dict
+
+totalWords :: Game -> Int
+totalWords game = length . M.keys $ gameWords game
+
+score :: Game -> Int
+score game = length . catMaybes . M.elems $ gameWords game
+
+playGame :: Game -> String -> Game
+playGame game word =
+  let grid = gameGrid game
+      foundWord = findWord grid word
+  in case foundWord of
+      Nothing -> game
+      Just cs ->
+        let dict = gameWords game
+            newDict = M.insert word foundWord dict
+        in game { gameWords = newDict }
+
+formatGame :: Game -> String
+formatGame game@(Game grid _) =
+     formatGrid grid
+  ++ "\n\n"
+  ++ (show $ score game)
+  ++ " / "
+  ++ (show $ totalWords game)
 
 data Cell = Cell (Integer, Integer) Char 
           | Indent 

@@ -56,3 +56,16 @@ main = hspec $ do
       let found = findWords (gridWithCoords grid) ["C++", "HASKELL", "ESPANJOL"]
           asStrings = map (map cellToChar) found
       asStrings `shouldBe` ["HASKELL"]
+
+  describe "makeGame" $ do
+    it "Should create a game with 0 score" $ do
+      let game = makeGame grid languages
+          gameScore = score game
+      gameScore `shouldBe` 0
+
+  describe "playGame" $ do
+    it "Should calculate the correct score" $ do
+      let game = makeGame grid languages
+      let gameWithScore = playGame (playGame game "HASKELL") "PHP"
+          newGameScore = score gameWithScore
+      newGameScore `shouldBe` 2
