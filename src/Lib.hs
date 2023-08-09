@@ -22,11 +22,15 @@ module Lib
     , completed
     , makeRandomGrid
     , fillInBlanks
+    , formatGameGrid
     ) where
 
 import System.Random (randomRs, split)
+
+import Data.Char (toLower)
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
+
 import qualified Data.Map as M
 
 data Game = Game
@@ -66,12 +70,11 @@ playGame game word =
         in game { gameWords = newDict }
 
 formatGame :: Game -> String
-formatGame game@(Game grid _) =
-     formatGrid grid
-  ++ "\n\n"
-  ++ (show $ score game)
-  ++ " / "
-  ++ (show $ totalWords game)
+formatGame game = formatGameGrid game
+                ++ "\n\n"
+                ++ (show $ score game)
+                ++ " / "
+                ++ (show $ totalWords game)
 
 data Cell = Cell (Integer, Integer) Char 
           | Indent 
@@ -112,6 +115,17 @@ outputGrid :: Grid Cell-> IO ()
 outputGrid grid = do
   putStrLn $ "length: " ++ show (length (formatGrid grid))
   putStrLn $ formatGrid grid
+
+formatGameGrid :: Game -> String
+formatGameGrid game =
+  let grid = gameGrid game
+      dict = gameWords game :: M.Map String (Maybe [Cell])
+      cellSet = concat . catMaybes . M.elems $ dict
+      formatCell cell = 
+        let char = cellToChar cell
+        in if cell `elem` cellSet then char else toLower char
+      charGrid = mapOverGrid formatCell grid
+  in unlines charGrid
 
 formatGrid :: Grid Cell -> String
 formatGrid = unlines . mapOverGrid cellToChar
