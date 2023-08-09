@@ -3,11 +3,14 @@ module Main (main) where
 import Lib
 import Data
 import System.IO
+import System.Random (newStdGen)
 
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
-  let game = makeGame grid languages
+  gen <- newStdGen
+  let filledInGrid = fillInBlanks gen grid
+      game = makeGame filledInGrid languages
   playTurn game
 
 playTurn game = do

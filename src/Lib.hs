@@ -20,8 +20,11 @@ module Lib
     , playGame
     , formatGame
     , completed
+    , makeRandomGrid
+    , fillInBlanks
     ) where
 
+import System.Random (randomRs, split)
 import Data.List (isInfixOf, transpose)
 import Data.Maybe (catMaybes, listToMaybe)
 import qualified Data.Map as M
@@ -74,6 +77,17 @@ data Cell = Cell (Integer, Integer) Char
           | Indent 
             deriving (Eq, Ord, Show)
 type Grid a = [[a]]
+
+makeRandomGrid gen =
+  let (gen1, gen2) = split gen
+      row = randomRs ('A', 'Z') gen1
+  in row : makeRandomGrid gen2
+
+fillInBlanks gen grid =
+  let r = makeRandomGrid gen
+      fill '_' r = r
+      fill c _ = c
+  in zipOverGridWith fill grid r
 
 zipOverGrid :: Grid a -> Grid b -> Grid (a, b)
 zipOverGrid = zipWith zip
