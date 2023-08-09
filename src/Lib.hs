@@ -25,7 +25,7 @@ module Lib
     , formatGameGrid
     ) where
 
-import System.Random (randomRs, split)
+import System.Random (randomRs, split, RandomGen)
 
 import Data.Char (toLower)
 import Data.List (isInfixOf, transpose)
@@ -81,11 +81,13 @@ data Cell = Cell (Integer, Integer) Char
             deriving (Eq, Ord, Show)
 type Grid a = [[a]]
 
+makeRandomGrid :: RandomGen t => t -> [[Char]]
 makeRandomGrid gen =
   let (gen1, gen2) = split gen
       row = randomRs ('A', 'Z') gen1
   in row : makeRandomGrid gen2
 
+fillInBlanks :: RandomGen p => p -> Grid Char -> Grid Char
 fillInBlanks gen grid =
   let r = makeRandomGrid gen
       fill '_' r = r
